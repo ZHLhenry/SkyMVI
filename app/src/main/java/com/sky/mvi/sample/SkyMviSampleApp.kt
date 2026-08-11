@@ -25,6 +25,8 @@ class SkyMviSampleApp : BaseApplication() {
                 // AndroidLoggingInterceptor.build() 抛 UninitializedException
                 .enableXLog(enableXLogLib = true)
                 .enableOkHttpLogLib(enableOkHttpLogLib = true)
+                // 启用 SkyFlow 全局事件总线（登录页示例演示广播「登录失效」事件）
+                .enableSkyFlow(enableSkyFlowLib = true)
                 .build()
         )
         super.onCreate()

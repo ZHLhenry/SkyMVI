@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.sky.mvi.R
 import com.sky.mvi.ext.util.logE
-import com.sky.mvi.mvi.BaseMviViewModel
-import com.sky.mvi.mvi.UiEffect
-import com.sky.mvi.mvi.UiIntent
-import com.sky.mvi.mvi.UiState
+import com.sky.mvi.core.SkyBaseMviViewModel
+import com.sky.mvi.core.SkyUiEffect
+import com.sky.mvi.core.SkyUiIntent
+import com.sky.mvi.core.SkyUiState
 import com.sky.mvi.network.AppException
 import com.sky.mvi.network.BaseResponse
 import com.sky.mvi.network.ExceptionHandle
@@ -56,7 +56,7 @@ import kotlinx.coroutines.withContext
  * @param onStart 请求开始回调，常用于置 loading 态
  * @param onComplete 请求结束回调（无论成败都会执行）
  */
-fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRequest(
+fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S, I, E>.apiRequest(
     context: Context,
     block: suspend () -> BaseResponse<T>,
     success: (T) -> Unit,
@@ -97,7 +97,7 @@ fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRe
  * @param onStart 请求开始回调
  * @param onComplete 请求结束回调
  */
-fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRequestNoCheck(
+fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S, I, E>.apiRequestNoCheck(
     context: Context,
     block: suspend () -> T,
     success: (T) -> Unit,
@@ -134,7 +134,7 @@ fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRe
  * @param isShowLoading 是否先发出 Loading 态
  * @param loadingMessage 加载提示文案
  */
-fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRequest(
+fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S, I, E>.apiRequest(
     context: Context,
     block: suspend () -> BaseResponse<T>,
     resultState: MutableStateFlow<ResultState<T>>,
@@ -167,7 +167,7 @@ fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRe
 /**
  * 发起网络请求并将三态写入 [resultState]，不校验业务状态码
  */
-fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.apiRequestNoCheck(
+fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S, I, E>.apiRequestNoCheck(
     context: Context,
     block: suspend () -> T,
     resultState: MutableStateFlow<ResultState<T>>,
@@ -292,7 +292,7 @@ suspend fun <T> executeResponse(
  * @param success 成功回调（主线程）
  * @param error 失败回调（主线程）
  */
-fun <S : UiState, I : UiIntent, E : UiEffect, T> BaseMviViewModel<S, I, E>.launchIO(
+fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S, I, E>.launchIO(
     block: suspend () -> T,
     success: (T) -> Unit,
     error: (Throwable) -> Unit = {}

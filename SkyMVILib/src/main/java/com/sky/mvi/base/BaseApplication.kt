@@ -6,15 +6,14 @@ import android.app.Application
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.sky.mvi.ext.lifecycle.KtxAppLifeObserver
-import com.sky.mvi.ext.lifecycle.KtxLifeCycleCallBack
+import com.sky.mvi.ext.lifecycle.AppLifeObserver
 import com.sky.mvi.network.manager.NetworkStateReceive
 
 /**
  * @Class: BaseApplication
  * @Author: Henry
  * @Date: 2026/08/03
- * @Description: Application基类，初始化网络监听、Activity生命周期管理及App前后台监听
+ * @Description: Application基类，初始化网络监听与App前后台监听
  */
 
 open class BaseApplication : Application() {
@@ -29,7 +28,6 @@ open class BaseApplication : Application() {
             private set
 
         private var mNetworkStateReceive: NetworkStateReceive? = null
-        private var watchActivityLife = true
         private var watchAppLife = true
 
         /**
@@ -50,11 +48,8 @@ open class BaseApplication : Application() {
                 mNetworkStateReceive,
                 IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
             )
-            if (watchActivityLife) {
-                application.registerActivityLifecycleCallbacks(KtxLifeCycleCallBack())
-            }
             if (watchAppLife) {
-                ProcessLifecycleOwner.get().lifecycle.addObserver(KtxAppLifeObserver)
+                ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifeObserver)
             }
         }
     }

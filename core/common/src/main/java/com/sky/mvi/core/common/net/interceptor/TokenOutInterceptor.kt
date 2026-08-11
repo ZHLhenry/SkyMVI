@@ -1,7 +1,11 @@
 package com.sky.mvi.core.common.net.interceptor
 
-import com.sky.mvi.core.common.ErrorCode.ERROR_200
+import com.sky.mvi.core.common.ErrorCode.ERROR_0
+import com.sky.mvi.core.common.ErrorCode.TOKEN_EXPIRED
+import com.sky.mvi.core.common.FlowKeys
+import com.sky.mvi.core.common.TokenExpiredEvent
 import com.sky.mvi.core.common.net.ApiResponse
+import com.sky.mvi.flow.SkyFlow
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -10,11 +14,11 @@ import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 
 /**
- * Token 校验拦截器：解析响应体，业务码为 [ERROR_200] 时表示登录态有效。
+ * Token 校验拦截器：解析响应体中的业务错误码。
  *
- * 说明：原 SkyMVVM 在此处通过 SkyFlow 广播 token 事件，但 SkyFlow 需要额外
- * `enableSkyFlowLib(true)` 才可用。本示例保持轻量，仅做解析与打点，避免
- * 未在初始化阶段开启 SkyFlow 时触发运行时异常。
+ * - [ERROR_200] 表示登录态有效，正常放行；
+ * - [TOKEN_EXPIRED] 表示 Token 过期 / 登录态失效，通过 SkyFlow 全局事件总线广播
+ *   [TokenExpiredEvent]，由应用层（如 AppRoot）订阅并跳转登录页。
  *
  * 注意：直接传入 [ApiResponse]::class.java 会让泛型参数 `T` 被类型擦除，
  * 导致 KotlinJsonAdapterFactory 找不到 T 的 adapter 而抛
@@ -39,8 +43,14 @@ class TokenOutInterceptor : Interceptor {
             val string = response.body.string()
             val responseBody = string.toResponseBody(mediaType)
             val apiResponse = adapter.fromJson(string)
-            if (apiResponse?.errorCode == ERROR_200) {
-                // token 校验通过，可在此触发登录态刷新 / 事件通知
+            when (apiResponse?.errorCode) {
+                TOKEN_EXPIRED -> { /* token 有效，正常放行 */ }
+                ERROR_0 -> {
+                    // 通过 SkyFlow 广播「登录失效」全局事件（fire-and-forget）
+                    SkyFlow.withStick<TokenExpiredEvent>(FlowKeys.TOKEN_EXPIRED).post(
+                        TokenExpiredEvent(reason = "Token 已过期（拦截器检测到 $TOKEN_EXPIRED）")
+                    )
+                }
             }
             response.newBuilder().body(responseBody).build()
         } else {

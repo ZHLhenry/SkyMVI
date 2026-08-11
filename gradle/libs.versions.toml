@@ -7,12 +7,10 @@ lifecycle = "2.11.0"
 splashscreen = "1.2.0"
 
 # ---- Compose 生态 ----
-# Compose BOM + 核心套件（runtime / ui / material3 / tooling 等）已由 SkyBuildLogic 自动注入，
-# 版本通过根项目 extra["skyBuild.composeBomVersion"] 覆盖；此处仅保留 BOM 之外的生态库版本。
 navigationCompose = "2.9.8"
 hiltNavigationCompose = "1.4.0"
-pagingCompose = "3.5.0"
 coil = "3.5.0"
+lottieCompose = "6.7.1"
 
 # ---- 协程 ----
 coroutines = "1.11.0"
@@ -20,15 +18,13 @@ coroutines = "1.11.0"
 # ---- 网络 ----
 retrofitVersion = "3.0.0"
 persistentcookiejar = "v1.0.1"
-okhttp = "5.4.0"
 chucker = "4.3.1"
 
 # ---- 数据解析 ----
 moshi = "1.15.2"
 
-# ---- 存储 ----
-datastore = "1.2.1"
-mmkv = "2.4.1"
+# ---- 分页（Paging 3）----
+pagingCompose = "3.3.6"
 
 # ---- 日志 / 工具 ----
 xlog = "1.11.1"
@@ -36,6 +32,7 @@ xlog = "1.11.1"
 # ---- Sky 系列库 ----
 skymvi = "1.0.0"
 skyBuildLogic = "1.2.3"
+skyWidgetCompose = "1.0.2"
 
 [libraries]
 # ---- AndroidX 基础 ----
@@ -57,7 +54,8 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
-androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottieCompose" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
@@ -77,15 +75,12 @@ okhttp-chucker-release = { group = "com.github.chuckerteam.chucker", name = "lib
 moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
 moshi-converter = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "retrofitVersion" }
 
-# ---- 存储 ----
-androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
-mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
-
 # ---- 日志 / 工具 ----
 xlog = { module = "com.elvishew:xlog", version.ref = "xlog" }
 
 # ---- Sky 系列库 ----
 skymvi = { module = "com.sky.lib:SkyMVI", version.ref = "skymvi" }
+skyWidgetCompose = { module = "com.sky.lib:SkyWidgetCompose", version.ref = "skyWidgetCompose" }
 
 [plugins]
 sky-android-application = { id = "sky.android.application", version.ref = "skyBuildLogic" }

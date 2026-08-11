@@ -11,6 +11,7 @@ val localProps = Properties().apply {
     if (file.exists()) load(FileInputStream(file))
 }
 val useLocalSkyMVI = localProps.getProperty("useLocalSkyMVI")?.toBooleanStrictOrNull() ?: false
+val useLocalSkyWidgetCompose = localProps.getProperty("useLocalSkyWidgetCompose")?.toBooleanStrictOrNull() ?: false
 
 android {
     namespace = "com.sky.mvi.core.common"
@@ -44,12 +45,18 @@ dependencies {
     // ---- 日志（XLog 由 SkyMVILib 以 compileOnly 暴露，此处补齐 api）----
     api(libs.xlog)
 
+    // ---- Paging 3（配合 SkyRefreshPagingLayout 使用）----
+    api(libs.androidx.paging.compose)
 
-    // ---- SkyMVILib：根据 useLocalSkyMVI 开关切换本地 / 远程依赖 ----
     if (useLocalSkyMVI) {
         api(project(":SkyMVILib"))
     } else {
         api(libs.skymvi)
+    }
+    if (useLocalSkyWidgetCompose) {
+        api(project(":SkyWidgetComposeLib"))
+    } else {
+        api(libs.skyWidgetCompose)
     }
     implementation(project(":core:model"))
 }

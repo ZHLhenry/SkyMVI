@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -20,8 +19,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.sky.mvi.mvi.compose.MviScreen
-import com.sky.mvi.mvi.rememberMviEffectHandler
+import com.sky.mvi.core.compose.SkyMviScreen
+import com.sky.mvi.core.rememberSkyMviEffectHandler
 
 @Composable
 fun LoginRoute(
@@ -29,8 +28,8 @@ fun LoginRoute(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     // 统一处理「导航 + Toast」副作用，无需 onLoginSuccess 回调
-    val onEffect = rememberMviEffectHandler(navController)
-    MviScreen(
+    val onEffect = rememberSkyMviEffectHandler(navController)
+    SkyMviScreen(
         viewModel = viewModel,
         onEffect = onEffect
     ) { state, onIntent ->

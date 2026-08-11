@@ -1,47 +1,29 @@
 package com.sky.mvi.widget.toast
 
+import android.content.Context
 import android.widget.Toast
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import com.sky.mvi.mvi.UiEffect
-import com.sky.mvi.mvi.compose.CollectEffect
-import kotlinx.coroutines.flow.Flow
+import com.sky.mvi.core.SkyUiEffect
 
 /**
- * 标记接口：实现该接口的 [UiEffect] 会被 [HandleToastEffects] 直接以 Toast 弹出，
- * 省去在每个屏幕里手写 `Toast.makeText`。
- *
- * ```
- * sealed interface HomeEffect : UiEffect {
- *     data class ShowToast(val msg: String) : HomeEffect, ToastEffect {
- *         override val message: String get() = msg
- *     }
- * }
- * ```
+ * @Class: SkyToastEffect
+ * @Author: Henry
+ * @Date: 2026/08/03
+ * @Description: MVI 框架下的 Toast 副作用契约
  */
-interface ToastEffect : UiEffect {
+
+/**
+ * Toast 副作用标记接口。
+ *
+ * ViewModel 的 Effect 实现此接口后，可被 [SkyHandleToastEffects] 自动弹出 Toast。
+ */
+interface SkyToastEffect : SkyUiEffect {
     val message: String
+    val duration: Int get() = Toast.LENGTH_SHORT
 }
 
 /**
- * 生命周期感知地收集 [UiEffect]，自动以 Toast 弹出 [ToastEffect]，其余交回 [onEffect]。
- *
- * 注意：[UiEffect] 由 Channel 驱动，只能被「一个」收集器消费。
- * 若屏幕已通过 [com.sky.mvi.mvi.compose.MviScreen] 收集副作用，请改用
- * [com.sky.mvi.mvi.rememberMviEffectHandler] 传入 MviScreen 的 onEffect，
- * 不要再单独调用本方法。
+ * 处理一个 Toast 副作用
  */
-@Composable
-fun HandleToastEffects(
-    effectFlow: Flow<UiEffect>,
-    onEffect: (UiEffect) -> Unit = {}
-) {
-    val context = LocalContext.current
-    CollectEffect(flow = effectFlow) { effect ->
-        if (effect is ToastEffect) {
-            Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-        } else {
-            onEffect(effect)
-        }
-    }
+fun SkyHandleToastEffects(context: Context, effect: SkyToastEffect) {
+    Toast.makeText(context, effect.message, effect.duration).show()
 }

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
  */
 
 /**
- * 将下载回调写入 [MutableStateFlow]，适合在 ViewModel 中把下载进度合并进 UiState
+ * 将下载回调写入 [MutableStateFlow]，适合在 ViewModel 中把下载进度合并进 SkyUiState
  *
  * @param context 用于读取默认错误文案
  * @param downloadState 承载下载状态的 StateFlow

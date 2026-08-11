@@ -7,6 +7,7 @@ val localProps = Properties().apply {
     if (file.exists()) load(FileInputStream(file))
 }
 val useLocalSkyBuildLogic = localProps.getProperty("useLocalSkyBuildLogic")?.toBooleanStrictOrNull() ?: false
+val useLocalSkyWidgetCompose = localProps.getProperty("useLocalSkyWidgetCompose")?.toBooleanStrictOrNull() ?: false
 
 pluginManagement {
     repositories {
@@ -61,6 +62,7 @@ dependencyResolutionManagement {
         }
         aliyunMaven("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skymvi")
         aliyunMaven("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skybuildlogic")
+        aliyunMaven("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skywidgetcompose")
         maven("${rootDir}/build/repo")
     }
 }
@@ -70,6 +72,10 @@ rootProject.name = "SkyMVI"
 
 if (useLocalSkyBuildLogic) {
     includeBuild("/Users/henry/workProject/androidProject/lib/SkyBuildLogic/buildLogicLib")
+}
+if (useLocalSkyWidgetCompose) {
+    include(":SkyWidgetComposeLib")
+    project(":SkyWidgetComposeLib").projectDir = file("../SkyWidgetCompose/SkyWidgetComposeLib")
 }
 
 include(":app")

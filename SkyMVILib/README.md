@@ -28,13 +28,13 @@ SkyMVI/
 ## 架构总览（MVI）
 
 单向数据流：**UI → Intent → ViewModel → Reducer → State → 重组(recompose)**。
-一次性事件（跳转、Toast、弹窗）走 `UiEffect`，由 `Channel` 保证「只消费一次」。
+一次性事件（跳转、Toast、弹窗）走 `SkyUiEffect`，由 `Channel` 保证「只消费一次」。
 
 ```
-┌──────┐  Intent   ┌──────────────────┐  setState   ┌──────────┐
-│  UI  │ ────────▶ │ BaseMviViewModel │ ──────────▶ │ UiState  │ ──▶ 重组
-└──────┘ ◀──────── │  (Reducer/DISP)  │  sendEffect └──────────┘
-        Effect     └──────────────────┘
+┌──────┐  Intent   ┌────────────────────┐  setState   ┌────────────┐
+│  UI  │ ────────▶ │ SkyBaseMviViewModel │ ──────────▶ │ SkyUiState │ ──▶ 重组
+└──────┘ ◀──────── │   (Reducer/DISP)   │  sendEffect └────────────┘
+        Effect     └────────────────────┘
 ```
 
 三件套约定（建议放在各 Feature 的 `xxxContract` 中）：
@@ -43,15 +43,14 @@ SkyMVI/
 // 状态：用 @Stable 标记，便于 Compose 跳过无变化重组
 @Stable
 data class LoginState(
-    val pageState: PageState = PageState.Loading,
     val account: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
-)
+) : SkyUiState
 
 // 意图：用 @Immutable 标记
 @Immutable
-sealed interface LoginIntent {
+sealed interface LoginIntent : SkyUiIntent {
     data object Submit : LoginIntent
     data class AccountChanged(val value: String) : LoginIntent
     data class PasswordChanged(val value: String) : LoginIntent
@@ -59,14 +58,14 @@ sealed interface LoginIntent {
 
 // 一次性事件：用 @Immutable 标记
 @Immutable
-sealed interface LoginEffect {
-    data class ShowToast(val msg: String) : LoginEffect, ToastEffect {
+sealed interface LoginEffect : SkyUiEffect {
+    data class ShowToast(val msg: String) : LoginEffect, SkyToastEffect {
         override val message: String get() = msg
     }
-    // 导航类副作用：标记 NavigationEffect 后由框架自动分发
-    data object NavigateHome : LoginEffect, NavigationEffect {
+    // 导航类副作用：标记 SkyNavigationEffect 后由框架自动分发
+    data object NavigateHome : LoginEffect, SkyNavigationEffect {
         override fun handle(controller: NavHostController) =
-            controller.navigateTo(Routes.Home.pattern, popUpToRoute = Routes.Login.pattern, inclusive = true)
+            controller.skyNavigateTo(Routes.Home.pattern, popUpToRoute = Routes.Login.pattern, inclusive = true)
     }
 }
 ```
@@ -111,7 +110,7 @@ class MainActivity : BaseComposeActivity() {
 ```kotlin
 @HiltViewModel
 class LoginViewModel @Inject constructor() :
-    BaseMviViewModel<LoginState, LoginIntent, LoginEffect>() {
+    SkyBaseMviViewModel<LoginState, LoginIntent, LoginEffect>() {
 
     override fun initialState() = LoginState()
 
@@ -135,24 +134,24 @@ class LoginViewModel @Inject constructor() :
 }
 ```
 
-`BaseMviViewModel` 内置能力：
+`SkyBaseMviViewModel` 内置能力：
 
 | 方法 | 说明 |
 | --- | --- |
-| `initialState()` | 返回页面初始 `UiState`（必须实现） |
+| `initialState()` | 返回页面初始 `SkyUiState`（必须实现） |
 | `handleIntent(intent)` | 处理来自 UI 的 `Intent`（必须实现） |
-| `setState { ... }` | 基于 CAS 的安全更新 `UiState`（传入以当前 state 为 receiver 的 lambda） |
+| `setState { ... }` | 基于 CAS 的安全更新 `SkyUiState`（传入以当前 state 为 receiver 的 lambda） |
 | `sendIntent` / `invoke` | 串行消费 `Intent` 的 `Channel(UNLIMITED)`，避免并发竞态 |
-| `sendEffect` / `postEffect` | 通过 `Channel(BUFFERED, SUSPEND)` 发送一次性 `UiEffect` |
-| `currentState` | 同步读取当前 `UiState` |
+| `sendEffect` / `postEffect` | 通过 `Channel(BUFFERED, SUSPEND)` 发送一次性 `SkyUiEffect` |
+| `currentState` | 同步读取当前 `SkyUiState` |
 | `singleFlight { }` | 合并并发请求，同一 key 仅执行一次 |
 | `stateInViewModel { }` | 将 `Flow` 以 `viewModelScope` + `WhileSubscribed` 收敛为 `StateFlow` |
 | `launchIO { }` | 在 `viewModelScope` + `Dispatchers.IO` 中启动协程 |
 
 ### 4. Composable 侧消费
 
-推荐用 `MviScreen` 一次性绑定「订阅状态 + 消费副作用 + 分发意图」，
-并用 `rememberMviEffectHandler` 把「导航 + Toast」两类副作用交给框架自动处理：
+推荐用 `SkyMviScreen` 一次性绑定「订阅状态 + 消费副作用 + 分发意图」，
+并用 `rememberSkyMviEffectHandler` 把「导航 + Toast」两类副作用交给框架自动处理：
 
 ```kotlin
 @Composable
@@ -161,8 +160,8 @@ fun LoginRoute(
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     // 统一处理「导航 + Toast」副作用，无需手写 onNavigateXxx 回调
-    val onEffect = rememberMviEffectHandler(navController)
-    MviScreen(
+    val onEffect = rememberSkyMviEffectHandler(navController)
+    SkyMviScreen(
         viewModel = viewModel,
         onEffect = onEffect
     ) { state, onIntent ->
@@ -173,15 +172,15 @@ fun LoginRoute(
 
 辅助扩展：
 
-- `viewModel.collectState()` — `collectAsStateWithLifecycle()` 的封装，自动跟随生命周期收集。
-- `MviScreen(viewModel, onEffect, content)` — 一次性完成状态订阅 / 副作用消费 / 意图分发。
-- `CollectEffect(flow) { }` — 在生命周期内收集任意 `Flow`（含 `viewModel.effect`）。
-- `LaunchedIntent(viewModel, intent)` — 进入组合时发送一次初始化 `Intent`（如首屏加载）。
-- `rememberIntentDispatcher(viewModel)` — 返回 `(I) -> Unit`，便于向子 Composable 透传。
+- `viewModel.collectSkyState()` — `collectAsStateWithLifecycle()` 的封装，自动跟随生命周期收集。
+- `SkyMviScreen(viewModel, onEffect, content)` — 一次性完成状态订阅 / 副作用消费 / 意图分发。
+- `SkyCollectEffect(flow) { }` — 在生命周期内收集任意 `Flow`（含 `viewModel.effect`）。
+- `SkyLaunchedIntent(viewModel, intent)` — 进入组合时发送一次初始化 `Intent`（如首屏加载）。
+- `rememberSkyIntentDispatcher(viewModel)` — 返回 `(I) -> Unit`，便于向子 Composable 透传。
 
 > **注意**：`viewModel.effect` 由 `Channel` 驱动，**只能被一个收集器消费**。
-> 使用 `MviScreen` 时，副作用统一走其 `onEffect` 参数（如 `rememberMviEffectHandler`），
-> 不要再额外调用 `CollectEffect(viewModel.effect)`，否则事件会被分流而漏消费。
+> 使用 `SkyMviScreen` 时，副作用统一走其 `onEffect` 参数（如 `rememberSkyMviEffectHandler`），
+> 不要再额外调用 `SkyCollectEffect(viewModel.effect)`，否则事件会被分流而漏消费。
 
 ---
 
@@ -193,59 +192,59 @@ fun LoginRoute(
 
 ```kotlin
 object Routes {
-    val Login = Router("login")
-    val Home = Router("home")
-    val Detail = Router("detail/{id}")
+    val Login = SkyRouter("login")
+    val Home = SkyRouter("home")
+    val Detail = SkyRouter("detail/{id}")
 }
 // 生成真实路径：Routes.Detail.build(123) -> "detail/123"
 ```
 
 ### 导航副作用
 
-只需让 `Effect` 实现 `NavigationEffect`，框架会自动调用其 `handle(controller)`：
+只需让 `Effect` 实现 `SkyNavigationEffect`，框架会自动调用其 `handle(controller)`：
 
 ```kotlin
-sealed interface HomeEffect : UiEffect {
-    data class ShowToast(val msg: String) : HomeEffect, ToastEffect {
+sealed interface HomeEffect : SkyUiEffect {
+    data class ShowToast(val msg: String) : HomeEffect, SkyToastEffect {
         override val message: String get() = msg
     }
-    data class NavigateDetail(val id: Int) : HomeEffect, NavigationEffect {
+    data class NavigateDetail(val id: Int) : HomeEffect, SkyNavigationEffect {
         override fun handle(controller: NavHostController) =
-            controller.navigateTo(Routes.Detail.build(id)) // 自动在 Detail 路由下跳转
+            controller.skyNavigateTo(Routes.Detail.build(id)) // 自动在 Detail 路由下跳转
     }
 }
 ```
 
 ### 统一副作用处理器
 
-`rememberMviEffectHandler` 返回 `(UiEffect) -> Unit`，专用于 `MviScreen` 的 `onEffect`
-（不会自行启动新的收集协程，避免与 MviScreen 内部的唯一 `CollectEffect` 竞争）：
+`rememberSkyMviEffectHandler` 返回 `(SkyUiEffect) -> Unit`，专用于 `SkyMviScreen` 的 `onEffect`
+（不会自行启动新的收集协程，避免与 SkyMviScreen 内部的唯一 `SkyCollectEffect` 竞争）：
 
 ```kotlin
 val navController = rememberNavController()
-val onEffect = rememberMviEffectHandler(navController)
-MviScreen(viewModel = vm, onEffect = onEffect) { state, onIntent -> /* ... */ }
+val onEffect = rememberSkyMviEffectHandler(navController)
+SkyMviScreen(viewModel = vm, onEffect = onEffect) { state, onIntent -> /* ... */ }
 ```
 
 它内部按类型分派：
 
-- `NavigationEffect` → 调用其 `handle(controller)`（即 `navigateTo`）
-- `ToastEffect` → `Toast.makeText(...).show()`
+- `SkyNavigationEffect` → 调用其 `handle(controller)`（即 `skyNavigateTo`）
+- `SkyToastEffect` → `Toast.makeText(...).show()`
 - 其它 → 交回 `onUnhandled` 兜底
 
 ### 导航扩展与独立收集器
 
 | API | 说明 |
 | --- | --- |
-| `navController.navigateTo(route, popUpToRoute, inclusive, singleTop)` | 封装 `popUpTo` / `singleTop` 的跳转 |
-| `navController.navigateBack()` | 返回上一页 |
-| `Router(pattern).build(vararg args)` | 参数填入占位符生成目标路径 |
-| `NavigationEffect` / `ToastEffect` | 标记接口，交给框架自动处理 |
-| `HandleNavigationEffects(navController, flow)` | 独立收集器（**非 MviScreen 场景**使用） |
-| `HandleToastEffects(flow)` | 独立 Toast 收集器（**非 MviScreen 场景**使用） |
+| `navController.skyNavigateTo(route, popUpToRoute, inclusive, singleTop)` | 封装 `popUpTo` / `singleTop` 的跳转 |
+| `navController.skyNavigateBack()` | 返回上一页 |
+| `SkyRouter(pattern).build(vararg args)` | 参数填入占位符生成目标路径 |
+| `SkyNavigationEffect` / `SkyToastEffect` | 标记接口，交给框架自动处理 |
+| `SkyHandleNavigationEffects(navController, flow)` | 独立收集器（**非 SkyMviScreen 场景**使用） |
+| `SkyHandleToastEffects(flow)` | 独立 Toast 收集器（**非 SkyMviScreen 场景**使用） |
 
-> 独立收集器（`HandleNavigationEffects` / `HandleToastEffects`）自带 `CollectEffect`，
-> 仅适用于**未**使用 `MviScreen` 的屏幕，请勿与 `MviScreen` 的 `onEffect` 同时使用。
+> 独立收集器（`SkyHandleNavigationEffects` / `SkyHandleToastEffects`）自带 `SkyCollectEffect`，
+> 仅适用于**未**使用 `SkyMviScreen` 的屏幕，请勿与 `SkyMviScreen` 的 `onEffect` 同时使用。
 
 ---
 
@@ -318,9 +317,7 @@ RefreshListWidget(
 apiRequest(
     context = context,
     block = { api.getEntryAndExitDataApi(page) },
-    onStart = { setState { copy(pageState = PageState.Loading) } },
-    success = { resp -> setState { copy(datas = resp.datas, pageState = PageState.Success) } },
-    error   = { e -> setState { copy(pageState = PageState.error(e)) } },
+    success = { resp -> setState { copy(datas = resp.datas) } },
 )
 ```
 
@@ -332,10 +329,11 @@ apiRequest(
 
 ## 分页 / 多状态
 
-`PageState`（`Loading` / `Success` / `Empty` / `Error`）与 `LoadMoreState`
-（`isRefreshing` / `isLoadingMore` / `hasMore` / `page`）用于列表页的「刷新 / 空 / 错 / 加载更多」状态机。
-`HomeScreen` 示例中演示了：用 `PageStateLayout` 承接首屏四态、用 `RefreshListWidget`
-实现下拉刷新与触底加载更多、用 `NavigationEffect` 实现「点击条目 → 跳转详情」。
+列表页推荐直接使用 Paging 3：通过 `BasePagingSource<Value>` 抽象分页机制、在薄子类中提供
+具体 API 与数据映射（见 `core:common` 的 `BasePagingSource`）。首屏的「加载 / 空 / 错 / 成功」
+四态以及下拉刷新、触底加载更多，统一由 widget 层的 `SkyPageState` 与 `RefreshListWidget` 承接
+（参考 `app` 模块的 `HomeScreen` 示例，它将 `LazyPagingItems` 的 `LoadState` 映射为 `SkyPageState`）。
+`SkyNavigationEffect` 仍用于「点击条目 → 跳转详情」等导航副作用。
 
 ---
 
@@ -369,9 +367,9 @@ apiRequest(
 | 架构 | MVVM | MVI（State/Intent/Effect 三件套） |
 | 状态容器 | LiveData / DataBinding | `StateFlow` + `Channel`（单向数据流） |
 | UI | XML + ViewBinding | Jetpack Compose |
-| 基类 | `BaseActivity/BaseVmActivity` | `BaseComposeActivity` + `BaseMviViewModel` |
+| 基类 | `BaseActivity/BaseVmActivity` | `BaseComposeActivity` + `SkyBaseMviViewModel` |
 | 网络回调 | 回调 + LiveData | `suspend` + `StateFlow` / `Flow` |
-| 导航 | 路由框架 / 手动跳转 | `NavigationEffect` 驱动的 Effect 化跳转 |
+| 导航 | 路由框架 / 手动跳转 | `SkyNavigationEffect` 驱动的 Effect 化跳转 |
 | UI 组件 | 自定义 View | `PageStateLayout` / `RefreshListWidget` 等 Compose 组件 |
 | 包名 | `com.sky.mvvm` | `com.sky.mvi` |
 | 资源前缀 | `sky_mvvmlib_` | `sky_mvilib_` |
