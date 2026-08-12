@@ -1,34 +1,65 @@
 package com.sky.mvi.network.manager
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import com.sky.mvi.util.NetworkUtil
 
 /**
  * @Class: NetworkStateReceive
  * @Author: Henry
  * @Date: 2026/08/03
- * @Description: 网络状态广播接收器，监听网络连接变化并更新NetworkStateManager
+ * @Description: 网络状态监听。基于 [ConnectivityManager.NetworkCallback] 实现，
+ * 取代已废弃的 CONNECTIVITY_ACTION 广播，适配 targetSdk 34+。
  */
 
-@Suppress("DEPRECATION")
-class NetworkStateReceive : BroadcastReceiver() {
+class NetworkStateReceive(context: Context) {
+
+    private val appContext = context.applicationContext
+    private val manager =
+        appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    private val request = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .build()
+
+    private val callback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            NetworkStateManager.instance.updateNetworkState(true)
+        }
+
+        override fun onLost(network: Network) {
+            NetworkStateManager.instance.updateNetworkState(false)
+        }
+
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            // 能力变化（如从受限网络切到正常网络）也需要同步一次
+            val hasInternet =
+                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            NetworkStateManager.instance.updateNetworkState(hasInternet)
+        }
+    }
 
     /**
-     * 注册广播时系统会立即回调一次，此处跳过首次回调，避免启动即误报网络变化
+     * 注册监听。首次注册时立即同步一次当前状态。
      */
-    private var isInit = true
+    fun register() {
+        manager.registerNetworkCallback(request, callback)
+        NetworkStateManager.instance.updateNetworkState(
+            NetworkUtil.isNetworkAvailable(appContext)
+        )
+    }
 
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ConnectivityManager.CONNECTIVITY_ACTION) return
-        if (!isInit) {
-            // StateFlow 内部按值去重，无需再手工比对上一次状态
-            NetworkStateManager.instance.updateNetworkState(
-                NetworkUtil.isNetworkAvailable(context)
-            )
-        }
-        isInit = false
+    /**
+     * 注销监听，避免内存泄漏
+     */
+    fun unregister() {
+        runCatching { manager.unregisterNetworkCallback(callback) }
     }
 }

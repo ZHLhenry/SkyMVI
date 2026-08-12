@@ -105,17 +105,24 @@ fun createBitmapSafely(width: Int, height: Int, config: Bitmap.Config, retryCoun
 
 /**
  * 防止重复点击事件 默认0.5秒内不可重复点击
+ *
+ * 使用各 View 自身的 tag 记录上次点击时间，避免文件级全局变量在多 View / 多线程
+ * 场景下的相互干扰。
+ *
  * @param interval 时间间隔 默认0.5秒
  * @param action 执行方法
  */
-var lastClickTime = 0L
+// 使用稳定的整型 key（非资源 ID，仅用于 getTag/setTag 区分）
+private const val CLICK_THROTTLE_TAG = 0x5b0a0001
+
 fun View.clickNoRepeat(interval: Long = 500, action: (view: View) -> Unit) {
     setOnClickListener {
         val currentTime = System.currentTimeMillis()
+        val lastClickTime = getTag(CLICK_THROTTLE_TAG) as? Long ?: 0L
         if (lastClickTime != 0L && (currentTime - lastClickTime < interval)) {
             return@setOnClickListener
         }
-        lastClickTime = currentTime
+        setTag(CLICK_THROTTLE_TAG, currentTime)
         action(it)
     }
 }

@@ -68,7 +68,8 @@ fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S,
     return viewModelScope.launch {
         onStart?.invoke()
         runCatching {
-            block()
+            // 网络请求切到 IO，避免在主线程阻塞 UI
+            withContext(Dispatchers.IO) { block() }
         }.onSuccess { response ->
             runCatching {
                 executeResponse(appContext, response) { data -> success(data) }
@@ -109,7 +110,8 @@ fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S,
     return viewModelScope.launch {
         onStart?.invoke()
         runCatching {
-            block()
+            // 网络请求切到 IO，避免在主线程阻塞 UI
+            withContext(Dispatchers.IO) { block() }
         }.onSuccess {
             success(it)
         }.onFailure { e ->
@@ -145,7 +147,8 @@ fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S,
     return viewModelScope.launch {
         if (isShowLoading) resultState.value = ResultState.onAppLoading(loadingMessage)
         runCatching {
-            block()
+            // 网络请求切到 IO，避免在主线程阻塞 UI
+            withContext(Dispatchers.IO) { block() }
         }.onSuccess { response ->
             resultState.value = if (response.isSucces()) {
                 ResultState.onAppSuccess(response.getResponseData())
@@ -178,7 +181,8 @@ fun <S : SkyUiState, I : SkyUiIntent, E : SkyUiEffect, T> SkyBaseMviViewModel<S,
     return viewModelScope.launch {
         if (isShowLoading) resultState.value = ResultState.onAppLoading(loadingMessage)
         runCatching {
-            block()
+            // 网络请求切到 IO，避免在主线程阻塞 UI
+            withContext(Dispatchers.IO) { block() }
         }.onSuccess {
             resultState.value = ResultState.onAppSuccess(it)
         }.onFailure { e ->

@@ -38,9 +38,10 @@ dependencies {
     // ---- 导航（MVI Effect 驱动的页面跳转封装）----
     api(libs.androidx.navigation.compose)
 
-    // ---- Material 图标（状态页 / 空数据 / 错误页等控件需要图标）----
+    // ---- Material 图标----
     api(libs.androidx.compose.material.icons.extended)
 
     // ---- 日志（可选依赖，由宿主决定是否引入 XLog）----
     compileOnly(libs.xlog)
+    compileOnly(libs.androidx.paging.compose)
 }

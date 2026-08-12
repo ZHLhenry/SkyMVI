@@ -86,7 +86,7 @@ inline fun <T> ResultState<T>.parseState(
  * 处理返回值：校验业务码，成功脱壳，失败转 AppException
  * @param result 请求结果
  */
-fun <T> MutableStateFlow<ResultState<T>>.paresResult(context: Context, result: BaseResponse<T>) {
+fun <T> MutableStateFlow<ResultState<T>>.parseResult(context: Context, result: BaseResponse<T>) {
     value = when {
         result.isSucces() -> ResultState.onAppSuccess(result.getResponseData())
         else -> ResultState.onAppError(
@@ -99,13 +99,13 @@ fun <T> MutableStateFlow<ResultState<T>>.paresResult(context: Context, result: B
  * 不处理返回值，直接返回请求结果
  * @param result 请求结果
  */
-fun <T> MutableStateFlow<ResultState<T>>.paresResult(result: T) {
+fun <T> MutableStateFlow<ResultState<T>>.parseResult(result: T) {
     value = ResultState.onAppSuccess(result)
 }
 
 /**
  * 异常转换异常处理
  */
-fun <T> MutableStateFlow<ResultState<T>>.paresException(context: Context, e: Throwable) {
+fun <T> MutableStateFlow<ResultState<T>>.parseException(context: Context, e: Throwable) {
     value = ResultState.onAppError(ExceptionHandle.handleException(context, e))
 }

@@ -1,10 +1,6 @@
-@file:Suppress("DEPRECATION")
-
 package com.sky.mvi.base
 
 import android.app.Application
-import android.content.IntentFilter
-import android.net.ConnectivityManager
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.sky.mvi.ext.lifecycle.AppLifeObserver
 import com.sky.mvi.network.manager.NetworkStateReceive
@@ -43,14 +39,19 @@ open class BaseApplication : Application() {
 
         private fun install(application: Application) {
             app = application
-            mNetworkStateReceive = NetworkStateReceive()
-            app.registerReceiver(
-                mNetworkStateReceive,
-                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-            )
+            mNetworkStateReceive = NetworkStateReceive(application).also { it.register() }
             if (watchAppLife) {
                 ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifeObserver)
             }
+        }
+
+        /**
+         * 在 Application#onTerminate（或进程退出前）调用以释放网络监听资源
+         */
+        @JvmStatic
+        fun releaseAppConfig() {
+            mNetworkStateReceive?.unregister()
+            mNetworkStateReceive = null
         }
     }
 }

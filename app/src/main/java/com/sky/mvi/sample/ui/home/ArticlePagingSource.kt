@@ -1,8 +1,8 @@
 package com.sky.mvi.sample.ui.home
 
 import com.sky.mvi.core.common.net.ApiService
-import com.sky.mvi.core.common.paging.BasePagingSource
 import com.sky.mvi.core.model.ArticleBean
+import com.sky.mvi.paging.BasePagingSource
 
 /**
  * 首页文章列表的 Paging 3 数据源。

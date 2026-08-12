@@ -80,19 +80,25 @@ object FileTool {
         val fileLength =
             getFileLength(currentLength, responseBody)
         val inputStream = responseBody.byteStream()
-        val accessFile = RandomAccessFile(File(filePath), "rwd")
+        val accessFile = withContext(Dispatchers.IO) {
+            RandomAccessFile(File(filePath), "rwd")
+        }
         val channel = accessFile.channel
-        val mappedBuffer = channel.map(
-            FileChannel.MapMode.READ_WRITE,
-            currentLength,
-            fileLength - currentLength
-        )
+        val mappedBuffer = withContext(Dispatchers.IO) {
+            channel.map(
+                FileChannel.MapMode.READ_WRITE,
+                currentLength,
+                fileLength - currentLength
+            )
+        }
         val buffer = ByteArray(1024 * 4)
         var len = 0
         var lastProgress = 0
         var currentSaveLength = currentLength //当前的长度
 
-        while (inputStream.read(buffer).also { len = it } != -1) {
+        while (withContext(Dispatchers.IO) {
+                inputStream.read(buffer)
+            }.also { len = it } != -1) {
             mappedBuffer.put(buffer, 0, len)
             currentSaveLength += len
 
@@ -120,9 +126,15 @@ object FileTool {
             }
         }
 
-        inputStream.close()
-        accessFile.close()
-        channel.close()
+        withContext(Dispatchers.IO) {
+            inputStream.close()
+        }
+        withContext(Dispatchers.IO) {
+            accessFile.close()
+        }
+        withContext(Dispatchers.IO) {
+            channel.close()
+        }
     }
 
     /**
@@ -173,16 +185,16 @@ object FileTool {
         val format = DecimalFormat("###.0")
         return when {
             bytes / GB >= 1 -> {
-                format.format(bytes / GB) + "GB";
+                format.format(bytes / GB) + "GB"
             }
             bytes / MB >= 1 -> {
-                format.format(bytes / MB) + "MB";
+                format.format(bytes / MB) + "MB"
             }
             bytes / KB >= 1 -> {
-                format.format(bytes / KB) + "KB";
+                format.format(bytes / KB) + "KB"
             }
             else -> {
-                "${bytes}B";
+                "${bytes}B"
             }
         }
     }

@@ -87,6 +87,8 @@ fun Context.checkAccessibilityServiceEnabled(serviceName: String): Boolean {
         )
     var result = false
     val splitter = TextUtils.SimpleStringSplitter(':')
+    // 必须先设置待分割的字符串，否则迭代器为空、循环永不执行
+    splitter.setString(settingValue)
     while (splitter.hasNext()) {
         if (splitter.next().equals(serviceName, true)) {
             result = true

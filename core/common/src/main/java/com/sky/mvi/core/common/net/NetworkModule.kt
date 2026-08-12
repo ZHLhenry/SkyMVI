@@ -40,7 +40,7 @@ object NetworkModule : BaseNetworkApi() {
             writeTimeout(AppConfig.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
             /** 缓存：最大 10M */
             cache(Cache(File(BaseApplication.app.cacheDir, AppConfig.CACHE_ID), 10 * 1024 * 1024))
-            /** 缓存拦截器，缓存 1 天 */
+            /** 缓存拦截器：离线可容忍 1 天过期数据，在线缓存 1 小时 */
             addInterceptor(CacheInterceptor(1))
             /** 公共请求头（需放在日志拦截器之前，否则 Log 不显示 head 信息） */
             addInterceptor(HeadsInterceptor())

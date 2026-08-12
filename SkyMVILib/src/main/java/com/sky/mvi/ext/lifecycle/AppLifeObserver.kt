@@ -1,8 +1,8 @@
 package com.sky.mvi.ext.lifecycle
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifeObserver)
  * ```
  */
-object AppLifeObserver : LifecycleObserver {
+object AppLifeObserver : DefaultLifecycleObserver {
 
     private val _isForeground = MutableStateFlow(false)
     /** 应用是否处于前台（只读流） */
@@ -30,13 +30,11 @@ object AppLifeObserver : LifecycleObserver {
     val isForeground: Boolean get() = _isForeground.value
     val isBackground: Boolean get() = !_isForeground.value
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    fun onForeground() {
+    override fun onStart(owner: LifecycleOwner) {
         _isForeground.value = true
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun onBackground() {
+    override fun onStop(owner: LifecycleOwner) {
         _isForeground.value = false
     }
 }

@@ -1,4 +1,4 @@
-package com.sky.mvi.core.common.paging
+package com.sky.mvi.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
@@ -9,10 +9,6 @@ import com.sky.mvi.network.BaseResponse
  *
  * 把 Paging 3 的「分页机制」（key 推进、刷新锚点、错误包装、空列表兜底）与
  * 「具体数据来源」解耦：子类/调用方只需提供 [loadPage]，描述「给定页码如何取一页数据」。
- *
- * 适用于任何列表场景——无论 [Value] 是 [com.sky.mvi.core.model.ArticleBean] 还是
- * 其他业务实体，无论数据来自 `getEntryAndExitDataApi` 还是其它接口，都不再需要
- * 重复编写 `PagingSource` 的样板代码。
  *
  * 页码统一用 [Int]（绝大多数分页接口如此）。若确有非 [Int] 页码需求，直接继承
  * `PagingSource` 自行实现即可，不必为本库增加复杂度。
@@ -25,6 +21,19 @@ abstract class BasePagingSource<Value : Any>(
     private val startKey: Int = 0,
     private val onError: ((String) -> Unit)? = null
 ) : PagingSource<Int, Value>() {
+
+    private val isPagingAvailable: Boolean by lazy {
+        runCatching {
+            Class.forName("androidx.paging.compose.LazyPagingItems")
+        }.isSuccess
+    }
+
+    init {
+        check(isPagingAvailable) {
+            "BasePagingSource 依赖 AndroidX Paging。" +
+                "请消费者自行添加依赖：implementation(\"androidx.paging:paging-compose:版本号\")"
+        }
+    }
 
     /**
      * 单页加载结果。由 [loadPage] 返回，描述「本页数据」以及「是否还有下一页」。

@@ -225,7 +225,6 @@ abstract class SkyBaseMviViewModel<S : SkyUiState, I : SkyUiIntent, E : SkyUiEff
         )
 
     override fun onCleared() {
-        super.onCleared()
         intentChannel.close()
         effectChannel.close()
     }

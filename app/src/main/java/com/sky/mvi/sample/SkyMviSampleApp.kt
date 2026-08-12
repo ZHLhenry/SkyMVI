@@ -10,14 +10,13 @@ import dagger.hilt.android.HiltAndroidApp
  * 示例 Application：继承 SkyMVILib 的 [BaseApplication] 以复用网络监听与前后台观测，
  * 通过 [@HiltAndroidApp] 启用 Hilt 依赖注入。
  *
- * 注意：[BaseComposeActivity.onCreate] 会调用 [SkyMVILib.requireInit]，
+ * 注意：ViewModel 首次访问时会调用 [SkyMVILib.requireInit] 校验初始化状态，
  * 因此必须在 Application#onCreate 最前面完成 SkyMVILib.init()。
  */
 @HiltAndroidApp
 class SkyMviSampleApp : BaseApplication() {
     override fun onCreate() {
         // SkyMVILib 必须在 super.onCreate() 之前初始化，
-        // 否则后续 Activity 启动时会抛 UninitializedException
         SkyMVILib.init(
             SkyMVILibConfig.Builder(this)
                 // 同时开启 XLog 与 OkHttp 日志拦截器，让 OkHttp 走通的请求/响应

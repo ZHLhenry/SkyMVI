@@ -4,7 +4,6 @@ package com.sky.mvi.network
 
 import android.content.Context
 import android.net.ParseException
-import org.apache.http.conn.ConnectTimeoutException
 import org.json.JSONException
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -39,11 +38,6 @@ object ExceptionHandle {
 
                 is javax.net.ssl.SSLException -> {
                     ex = AppException(context,Error.SSL_ERROR, e)
-                    return ex
-                }
-
-                is ConnectTimeoutException -> {
-                    ex = AppException(context,Error.TIMEOUT_ERROR, e)
                     return ex
                 }
 

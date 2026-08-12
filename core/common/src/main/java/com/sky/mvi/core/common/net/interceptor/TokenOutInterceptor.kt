@@ -16,7 +16,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 /**
  * Token 校验拦截器：解析响应体中的业务错误码。
  *
- * - [ERROR_200] 表示登录态有效，正常放行；
+ * - [ERROR_0]（errorCode == 0）表示登录态有效，正常放行；
  * - [TOKEN_EXPIRED] 表示 Token 过期 / 登录态失效，通过 SkyFlow 全局事件总线广播
  *   [TokenExpiredEvent]，由应用层（如 AppRoot）订阅并跳转登录页。
  *
@@ -44,8 +44,8 @@ class TokenOutInterceptor : Interceptor {
             val responseBody = string.toResponseBody(mediaType)
             val apiResponse = adapter.fromJson(string)
             when (apiResponse?.errorCode) {
-                TOKEN_EXPIRED -> { /* token 有效，正常放行 */ }
-                ERROR_0 -> {
+                ERROR_0 -> { /* token 有效，正常放行 */ }
+                TOKEN_EXPIRED -> {
                     // 通过 SkyFlow 广播「登录失效」全局事件（fire-and-forget）
                     SkyFlow.withStick<TokenExpiredEvent>(FlowKeys.TOKEN_EXPIRED).post(
                         TokenExpiredEvent(reason = "Token 已过期（拦截器检测到 $TOKEN_EXPIRED）")

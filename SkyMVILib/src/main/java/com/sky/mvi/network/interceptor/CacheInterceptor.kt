@@ -27,19 +27,21 @@ class CacheInterceptor(var day: Int = 7) : Interceptor {
                 .build()
         }
         val response = chain.proceed(request)
-        if (!NetworkUtil.isNetworkAvailable(app)) {
+        // 必须接收 newBuilder().build() 的结果再返回，否则缓存头不会生效
+        return if (!NetworkUtil.isNetworkAvailable(app)) {
+            // 离线：仅返回已缓存内容，并容忍 day 天的过期数据
+            val maxStale = 60 * 60 * 24 * day
+            response.newBuilder()
+                .removeHeader("Pragma")
+                .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
+                .build()
+        } else {
+            // 在线：缓存 1 小时
             val maxAge = 60 * 60
             response.newBuilder()
                 .removeHeader("Pragma")
                 .header("Cache-Control", "public, max-age=$maxAge")
                 .build()
-        } else {
-            val maxStale = 60 * 60 * 24 * day // tolerate 4-weeks stale
-            response.newBuilder()
-                .removeHeader("Pragma")
-                .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
-                .build()
         }
-        return response
     }
 }
