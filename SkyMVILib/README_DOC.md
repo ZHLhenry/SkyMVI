@@ -49,7 +49,6 @@ class App : BaseApplication() {
                 .enableXLog(true)               // 是否启用 XLog 日志
                 .enableOkHttpLogLib(true)       // 是否启用 OkHttp 日志拦截
                 .enableSkyFlow(true)            // 是否启用 SkyFlow 事件总线
-                .enableStrictMode(BuildConfig.DEBUG) // Debug 校验 MVI 用法
                 .build()
         )
         // 其它初始化...

@@ -30,7 +30,7 @@ pagingCompose = "3.3.6"
 xlog = "1.11.1"
 
 # ---- Sky 系列库 ----
-skymvi = "1.0.0"
+skymvi = "1.0.1"
 skyBuildLogic = "1.2.3"
 skyWidgetCompose = "1.0.2"
 

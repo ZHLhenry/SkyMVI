@@ -9,28 +9,27 @@ import okhttp3.Interceptor
  * @Class: SkyMVILibConfig
  * @Author: Henry
  * @Date: 2026/08/03
- * @Description: SkyMVI库配置类，支持XLog日志、SkyFlow事件流、OkHttp日志、Compose严格模式等模块配置
+ * @Description: SkyMVI库配置类，支持XLog日志、SkyFlow事件流、OkHttp日志等模块配置
  */
 
 class SkyMVILibConfig private constructor(
     var context: Context,
     var xLogLibEnabled: Boolean,
     var skyFlowLibEnabled: Boolean,
-    var xLogConfig: LogConfiguration?,
-    var xLogPrinter: Array<out Printer>,
+    // 使用 Any 擦除类型，避免未启用 XLog 时 JVM 加载 XLog 类导致 NoClassDefFoundError
+    var xLogConfig: Any?,
+    var xLogPrinter: Array<out Any>,
     var okHttpLogLibEnabled: Boolean,
-    var okHttpLogConfig: Interceptor?,
-    var strictModeEnabled: Boolean
+    var okHttpLogConfig: Interceptor?
 ) {
 
     class Builder(private val context: Context) {
         private var xLogLibEnabled = false
         private var skyFlowLibEnabled = false
-        private var xLogConfig: LogConfiguration? = null
-        private var xLogPrinter: Array<out Printer> = emptyArray()
+        private var xLogConfig: Any? = null
+        private var xLogPrinter: Array<out Any> = emptyArray()
         private var okHttpLogLibEnabled = false
         private var okHttpLogConfig: Interceptor? = null
-        private var strictModeEnabled = false
 
         /**
          * 启用 XLog 日志模块。
@@ -80,17 +79,6 @@ class SkyMVILibConfig private constructor(
             return this
         }
 
-        /**
-         * 启用严格模式：Debug 期校验 MVI 用法（如 State 是否为 data class），
-         * 发现问题时打印警告日志，便于早期暴露架构误用
-         *
-         * @param enableStrictMode 是否启用 默认false
-         */
-        fun enableStrictMode(enableStrictMode: Boolean = false): Builder {
-            this.strictModeEnabled = enableStrictMode
-            return this
-        }
-
         fun build(): SkyMVILibConfig {
             return SkyMVILibConfig(
                 context = context.applicationContext,
@@ -99,8 +87,7 @@ class SkyMVILibConfig private constructor(
                 xLogPrinter = xLogPrinter,
                 skyFlowLibEnabled = skyFlowLibEnabled,
                 okHttpLogLibEnabled = okHttpLogLibEnabled,
-                okHttpLogConfig = okHttpLogConfig,
-                strictModeEnabled = strictModeEnabled
+                okHttpLogConfig = okHttpLogConfig
             )
         }
     }

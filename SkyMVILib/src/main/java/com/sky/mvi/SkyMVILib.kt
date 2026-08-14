@@ -32,16 +32,18 @@ object SkyMVILib {
      * 初始化SkyMVILib，需在 Application#onCreate 中调用
      * @param config 配置项
      */
+    @Suppress("UNCHECKED_CAST")
     fun init(config: SkyMVILibConfig) {
         if (config.xLogLibEnabled) {
-            val xLogConfig: LogConfiguration = config.xLogConfig ?: LogConfiguration.Builder()
-                .logLevel(LogLevel.ALL)
-                .disableBorder()
-                .addInterceptor(BlacklistTagsFilterInterceptor())
-                .build()
+            val xLogConfig: LogConfiguration =
+                (config.xLogConfig as? LogConfiguration) ?: LogConfiguration.Builder()
+                    .logLevel(LogLevel.ALL)
+                    .disableBorder()
+                    .addInterceptor(BlacklistTagsFilterInterceptor())
+                    .build()
             val defaultPrinter: Printer = AndroidPrinter(true)
             val printers: Array<out Printer> =
-                if (config.xLogPrinter.isNotEmpty()) config.xLogPrinter else arrayOf(defaultPrinter)
+                if (config.xLogPrinter.isNotEmpty()) config.xLogPrinter as Array<out Printer> else arrayOf(defaultPrinter)
             XLog.init(xLogConfig, *printers)
         }
         if (config.okHttpLogLibEnabled && config.okHttpLogConfig == null) {
