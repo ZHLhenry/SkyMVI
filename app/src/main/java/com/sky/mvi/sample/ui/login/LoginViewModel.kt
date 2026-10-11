@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 登录页 ViewModel：演示「表单输入 -> Intent -> State」的 MVI 链路。
@@ -34,7 +35,7 @@ class LoginViewModel @Inject constructor() :
         }
         setState { copy(isLoading = true, loginError = null) }
         viewModelScope.launch {
-            delay(800) // 模拟登录请求
+            delay(800.milliseconds) // 模拟登录请求
             setState { copy(isLoading = false) }
             sendEffect(LoginEffect.NavigateHome)
         }

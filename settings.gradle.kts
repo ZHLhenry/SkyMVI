@@ -31,6 +31,11 @@ pluginManagement {
                 password = "Tqmt4VtWBTp)"
             }
             url = uri("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skybuildlogic")
+            content {
+                // 插件标记（group 即插件 ID）+ com.sky.* 产物，避免无关插件探测私有库
+                includeGroupByRegex("sky\\.android.*")
+                includeGroupByRegex("com\\.sky.*")
+            }
         }
     }
 }
@@ -58,6 +63,10 @@ dependencyResolutionManagement {
                     password = "RnVrdxoghjKo"
                 }
                 url = uri(repoUrl)
+                content {
+                    // 私有库仅托管 Sky 系列产物：com.sky.lib（SkyMVI/SkyWidgetCompose）、com.sky.buildLogic（hilt-noop-processor）
+                    includeGroupByRegex("com\\.sky.*")
+                }
             }
         }
         aliyunMaven("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skymvi")

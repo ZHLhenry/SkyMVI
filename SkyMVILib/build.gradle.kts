@@ -43,5 +43,6 @@ dependencies {
 
     // ---- 日志（可选依赖，由宿主决定是否引入 XLog）----
     compileOnly(libs.xlog)
+    // ---- 分页（可选依赖，由宿主决定是否引入 paging）----
     compileOnly(libs.androidx.paging.compose)
 }

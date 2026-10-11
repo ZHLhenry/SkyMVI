@@ -49,11 +49,10 @@ fun HomeRoute(
 
 /** 将 Paging 的 refresh 加载状态映射为 SkyPageStateLayout 所需的状态 */
 private fun LazyPagingItems<ArticleBean>.toSkyPageState(): SkyPageState {
-    val refresh = loadState.refresh
-    return when {
-        refresh is LoadState.Loading && itemCount == 0 -> SkyPageState.Loading
-        refresh is LoadState.Error -> SkyPageState.Error((refresh.error.message ?: "加载失败"))
-        refresh is LoadState.NotLoading && itemCount == 0 -> SkyPageState.Empty("暂无文章")
+    return when (val refresh = loadState.refresh) {
+        is LoadState.Loading if itemCount == 0 -> SkyPageState.Loading
+        is LoadState.Error -> SkyPageState.Error((refresh.error.message ?: "加载失败"))
+        is LoadState.NotLoading if itemCount == 0 -> SkyPageState.Empty("暂无文章")
         else -> SkyPageState.Success
     }
 }

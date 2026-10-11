@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.view.View
 import android.widget.ImageView
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withSave
 
 /**
  * @Class: ViewExt
@@ -79,11 +80,11 @@ fun View.toBitmap(scale: Float = 1f, config: Bitmap.Config = Bitmap.Config.ARGB_
     if (bitmap != null) {
         Canvas().run {
             setBitmap(bitmap)
-            save()
-            drawColor(Color.WHITE)
-            scale(scale, scale)
-            this@toBitmap.draw(this)
-            restore()
+            withSave {
+                drawColor(Color.WHITE)
+                scale(scale, scale)
+                this@toBitmap.draw(this)
+            }
             setBitmap(null)
         }
     }

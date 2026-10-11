@@ -1,6 +1,6 @@
 [versions]
 # ---- AndroidX 基础 ----
-coreKtx = "1.18.0"
+coreKtx = "1.19.0"
 appcompat = "1.7.1"
 activity = "1.13.0"
 lifecycle = "2.11.0"
@@ -9,7 +9,7 @@ splashscreen = "1.2.0"
 # ---- Compose 生态 ----
 navigationCompose = "2.9.8"
 hiltNavigationCompose = "1.4.0"
-coil = "3.5.0"
+coil = "3.6.3"
 lottieCompose = "6.7.1"
 
 # ---- 协程 ----
@@ -24,15 +24,15 @@ chucker = "4.3.1"
 moshi = "1.15.2"
 
 # ---- 分页（Paging 3）----
-pagingCompose = "3.3.6"
+pagingCompose = "3.5.1"
 
 # ---- 日志 / 工具 ----
 xlog = "1.11.1"
 
 # ---- Sky 系列库 ----
-skymvi = "1.0.1"
-skyBuildLogic = "1.2.3"
-skyWidgetCompose = "1.0.2"
+skymvi = "1.0.2"
+skyBuildLogic = "1.2.7"
+skyWidgetCompose = "1.1.0"
 
 [libraries]
 # ---- AndroidX 基础 ----
