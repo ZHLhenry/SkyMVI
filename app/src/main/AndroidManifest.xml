@@ -7,8 +7,9 @@
     <application
         android:name=".SkyMviSampleApp"
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:label="SkyMVI Sample"
+        android:icon="${app_icon}"
+        android:roundIcon="${app_icon}"
+        android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.SkyMviSample">
         <activity

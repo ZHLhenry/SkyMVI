@@ -10,15 +10,15 @@ android {
     productFlavors {
         create("dev") {
             dimension = "contentType"
-            manifestPlaceholders["app_icon"] = "@mipmap/ic_launcher"
+            manifestPlaceholders["app_icon"] = "@mipmap/ic_skymvi_debug"
         }
         create("uat") {
             dimension = "contentType"
-            manifestPlaceholders["app_icon"] = "@mipmap/ic_launcher"
+            manifestPlaceholders["app_icon"] = "@mipmap/ic_skymvi"
         }
         create("prod") {
             dimension = "contentType"
-            manifestPlaceholders["app_icon"] = "@mipmap/ic_launcher"
+            manifestPlaceholders["app_icon"] = "@mipmap/ic_skymvi"
         }
     }
 }

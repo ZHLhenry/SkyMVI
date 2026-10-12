@@ -2,7 +2,7 @@
 
 SkyMVILib 是一套基于 **MVI（Model-View-Intent）+ Jetpack Compose + Kotlin Coroutines** 的 Android 业务框架，封装了单向数据流、网络请求、文件下载、缓存、Paging 等通用能力，帮助业务以一致的方式组织页面逻辑。
 
-> 版本：v1.0.0（首发） · 适用 `targetSdk` 34+
+> 版本：v1.0.3 · 适用 `targetSdk` 34+
 
 ---
 
